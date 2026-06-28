@@ -28,6 +28,13 @@
         res.json(result.rows[0])
     })
 
+    app.delete('/api/skills/:id', async (req, res) => {
+        const id = req.params.id
+        const result = await pool.query(
+            'DELETE FROM skills WHERE id = $1 RETURNING *', [id]
+        )
+        res.json(result.rows[0])
+    })
 
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`)
