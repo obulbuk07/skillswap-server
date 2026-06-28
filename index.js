@@ -1,13 +1,16 @@
     const express = require('express') // import express
     const cors = require('cors') // import cors
     const pool = require('./db') // import db
-
+    const authRoutes = require('./routes/auth')
+    
     const app = express() // creating app
 
-    const PORT = 3000; //doors for front end localhost:3000
-
+    const PORT = 3000;
     app.use(cors()) 
+
     app.use(express.json())
+    
+    app.use('/api/auth', authRoutes)
 
     app.get('/', (req, res) =>{
         res.json({message:'Skillswap server is running'})
