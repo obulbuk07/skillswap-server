@@ -2,7 +2,8 @@
     const cors = require('cors') // import cors
     const pool = require('./db') // import db
     const authRoutes = require('./routes/auth')
-    
+    const authMiddleware = require('./middleware/auth')
+
     const app = express() // creating app
 
     const PORT = 3000;
@@ -11,7 +12,7 @@
     app.use(express.json())
     
     app.use('/api/auth', authRoutes)
-
+    
     app.get('/', (req, res) =>{
         res.json({message:'Skillswap server is running'})
     })
@@ -22,7 +23,7 @@
     })
 
 
-    app.post('/api/skills', async (req, res) => {
+    app.post('/api/skills', authMiddleware, async (req, res) => {
         const {name, category, author, canTeach} = req.body
         const result = await pool.query(
             'INSERT INTO skills (name, category, author, can_teach) VALUES ($1, $2, $3, $4) RETURNING *',
@@ -31,7 +32,7 @@
         res.json(result.rows[0])
     })
 
-    app.delete('/api/skills/:id', async (req, res) => {
+    app.delete('/api/skills/:id', authMiddleware, async (req, res) => {
         const id = req.params.id
         const result = await pool.query(
             'DELETE FROM skills WHERE id = $1 RETURNING *', [id]
