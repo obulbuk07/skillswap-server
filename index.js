@@ -1,5 +1,6 @@
     const express = require('express') // import express
     const cors = require('cors') // import cors
+    const pool = require('./db') // import db
 
     const app = express() // creating app
 
@@ -12,18 +13,19 @@
         res.json({message:'Skillswap server is running'})
     })
 
-    const skills = [
-    { id: 1, name: 'React', category: 'Frontend', author: 'Alex', canTeach: true },
-    { id: 2, name: 'PostgreSQL', category: 'Backend', author: 'Maria', canTeach: false },
-    ]
-
-    app.get('/api/skills', (req, res) => {
-        res.json(skills)
+    app.get('/api/skills', async (req, res) => {
+        const result = await pool.query('SELECT * FROM skills')
+        res.json(result.rows)
     })
-    app.post('/api/skills', (req, res) => {
-        const newSkill = {id: skills.length + 1, ...req.body}
-        skills.push(newSkill)
-        res.json(newSkill)
+
+
+    app.post('/api/skills', async (req, res) => {
+        const {name, category, author, canTeach} = req.body
+        const result = await pool.query(
+            'INSERT INTO skills (name, category, author, can_teach) VALUES ($1, $2, $3, $4) RETURNING *',
+            [name, category, author, canTeach] 
+        )
+        res.json(result.rows[0])
     })
 
 
