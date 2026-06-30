@@ -24,19 +24,29 @@
 
 
     app.post('/api/skills', authMiddleware, async (req, res) => {
-        const {name, category, author, canTeach} = req.body
+        const {name, category, canTeach} = req.body
+
+        const userResult = await pool.query(
+            'SELECT name FROM users WHERE id = $1',[req.userId]
+        )
+        const author = userResult.rows[0].name
+
         const result = await pool.query(
-            'INSERT INTO skills (name, category, author, can_teach) VALUES ($1, $2, $3, $4) RETURNING *',
-            [name, category, author, canTeach] 
+            'INSERT INTO skills (name, category, author, can_teach, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [name, category, author, canTeach, req.userId] 
         )
         res.json(result.rows[0])
     })
 
     app.delete('/api/skills/:id', authMiddleware, async (req, res) => {
         const id = req.params.id
+        const userId = req.userId
         const result = await pool.query(
-            'DELETE FROM skills WHERE id = $1 RETURNING *', [id]
+            'DELETE FROM skills WHERE id = $1 AND user_id = $2 RETURNING *', [id, userId]
         )
+        if(!result.rows[0]){
+            return res.status(403).json({error: 'You can only delete your own skill'})
+        }
         res.json(result.rows[0])
     })
 
