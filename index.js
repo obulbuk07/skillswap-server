@@ -3,6 +3,7 @@
     const pool = require('./db') // import db
     const authRoutes = require('./routes/auth')
     const authMiddleware = require('./middleware/auth')
+    const transporter = require('./mailer')
 
     const app = express() // creating app
 
@@ -50,6 +51,26 @@
         res.json(result.rows[0])
     })
 
+    app.post('/api/skills/:id/contact', authMiddleware, async (req, res) => {
+        const id = req.params.id
+        const mssg = req.body.mssg
+
+        const skillResult = await pool.query('SELECT * FROM skills WHERE id = $1', [id])
+        const skill = skillResult.rows[0]
+        const authorResult = await pool.query('SELECT * FROM users WHERE id = $1', [skill.user_id])
+        const author = authorResult.rows[0]
+        const senderResult = await pool.query("SELECT name, email FROM users WHERE id = $1", [req.userId])
+        const sender = senderResult.rows[0]
+
+        await transporter.sendMail({
+            from:process.env.EMAIL_USER,
+            to: author.email,
+            subject: `New message about your skill: ${skill.name}`,
+            text: `Message from ${sender.name} (${sender.email}):\n\n${mssg}`
+        })
+
+        res.json({success: true})
+    } )
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`)
     })
