@@ -74,3 +74,16 @@
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`)
     })
+
+    app.put('/api/skills/:id', authMiddleware, async (req, res) =>{
+        const id = req.params.id
+        const {name, category, canTeach} = req.body
+
+        const result = await pool.query(
+            'UPDATE skills SET name=$1, category=$2, can_teach=$3 WHERE id=$4 AND user_id=$5 RETURNING *', [name, category, canTeach, id, req.userId]
+        )
+        if (!result.rows[0]) {
+            return res.status(403).json({ error: 'You can only edit your own skills' })
+        }
+        res.json(result.rows[0])
+    })
