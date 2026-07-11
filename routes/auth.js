@@ -18,7 +18,7 @@ router.post('/register', async (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-    const {email, password} = req.body
+    const {email, password,} = req.body
     const result = await pool.query(
         'SELECT * FROM users WHERE email = $1',[email]
     )
@@ -35,7 +35,7 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign({id:user.id}, process.env.JWT_SECRET, {expiresIn: '7d'})
-    res.json({token})
+    res.json({token, name : user.name})
 
 })
 module.exports = router
