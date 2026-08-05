@@ -1,3 +1,5 @@
+    require('dotenv').config()
+    
     const express = require('express') // import express
     const cors = require('cors') // import cors
     const pool = require('./db') // import db
@@ -8,7 +10,10 @@
     const app = express() // creating app
 
     const PORT = 3000;
-    app.use(cors()) 
+    app.use(cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true
+    })) 
 
     app.use(express.json())
     
